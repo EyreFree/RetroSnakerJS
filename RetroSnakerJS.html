@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html class="light page-home">
+
+<head>
+    <meta charset="utf-8">
+    <title>RetroSnaker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="EyreFree,C/C++,Objective-C,Swift,iOS,OS X" />
+    <meta name="description" content="RetroSnaker">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="RetroSnaker">
+    <meta property="og:url" content="http://www.eyrefree.org/RetroSnaker.html">
+    <meta property="og:site_name" content="RetroSnaker">
+    <meta property="og:description" content="RetroSnaker">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="RetroSnaker">
+    <meta name="twitter:description" content="RetroSnaker">
+    <link rel="icon" href="https://www.eyrefree.org/favicon.ico">
+    <style type="text/css">
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    
+    div.container {
+        border: 0px solid #000;
+        width: 100%;
+        height: 100%;
+        display: table;
+    }
+    
+    div.wrapper {
+        text-align: center;
+        display: table-cell;
+        vertical-align: middle;
+    }
+    
+    div.wrapper canvas {
+        border: 0px solid #ddd;
+    }
+    </style>
+    <!--[if lte IE 7]>
+        <style type="text/css">
+            div.container{
+                position:relative;
+            }
+            div.wrapper{
+                position:absolute;
+                left:50%;top:50%;
+            }
+            div.wrapper canvas{
+                position:relative;
+                left:-50%;top:-50%;
+            }
+        </style>
+    <![endif]-->
+</head>
+
+<body>
+    <div class="container">
+        <div class="wrapper">
+            <canvas id="EyreFreeCanvas" width=602 height=602>普通的 Canvas</canvas>
+        </div>
+    </div>
+    <script type="text/javascript">
+    //计时器
+    var t;
+
+    function gameLoop() {
+        refresh();
+        clearTimeout(t);
+
+        isGameRun = true;
+
+        if (false == isGameOver) {
+            //调整这里改游戏速度
+            t = setTimeout("gameLoop()", 200)
+        }
+    }
+
+    //绘图原点
+    var drawOri = new Point(1, 1);
+    //游戏结束标志
+    var isGameRun = false;
+    var isGameOver = false;
+    var isTextOut = false;
+    //方向
+    var direction = 38;
+    //身体长度
+    var bodyLength = 3;
+    //身体
+    var bodyArray = [new Point(10, 10), new Point(10, 11), new Point(10, 12)];
+    //食物
+    var foodPos = new Point(16, 16);
+    //获取画布
+    var canvas = document.getElementById("EyreFreeCanvas");
+    var context = canvas.getContext("2d");
+    var bodyRealWidth = canvas.width;
+    var bodyRealHeight = canvas.height;
+    //设置格子尺寸
+    var bodyStepX = 30;
+    var bodyStepY = 30;
+    //计算格子数量
+    var bodyCountX = Math.floor(bodyRealWidth / bodyStepX);
+    var bodyCountY = Math.floor(bodyRealHeight / bodyStepY);
+
+    //画格子
+    for (var i = bodyCountX; i >= 0; i--) {
+        drawLine(bodyStepX * i, 0, bodyStepX * i, bodyCountY * bodyStepY);
+    }
+    for (var i = bodyCountY; i >= 0; i--) {
+        drawLine(0, bodyStepY * i, bodyCountX * bodyStepX, bodyStepY * i);
+    }
+
+    //画食物
+    createFood();
+
+    //初始化身体
+    refresh();
+
+    function refresh() {
+        var head = getHead();
+        //头部增长
+        switch (direction) {
+            case 37:
+                addHead(head.x - 1, head.y);
+                break;
+            case 39:
+                addHead(head.x + 1, head.y);
+                break;
+            case 38:
+                addHead(head.x, head.y - 1);
+                break;
+            case 40:
+                addHead(head.x, head.y + 1);
+                break;
+        }
+
+        //尾部缩减
+        if (bodyArray.length > bodyLength) {
+            delTail();
+        }
+
+        //绘制身体
+        for (var i = bodyArray.length - 1; i >= 0; i--) {
+            drawSquare(bodyArray[i].x, bodyArray[i].y);
+        }
+
+        //绘制食物
+        if (foodPos.x < 0 || foodPos.y < 0) {
+            createFood();
+        }
+
+        //绘制文字
+        if (true == isGameOver) {
+            drawText(false);
+        } else if (bodyLength >= bodyCountX * bodyCountY) {
+            drawText(true);
+        }
+    };
+
+    //按钮操作
+    document.onkeydown = function(event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 32) { //space
+            if (true == isGameRun) {
+                isGameRun = false;
+                clearTimeout(t);
+            } else {
+                gameLoop();
+            }
+        } else if (e && e.keyCode == 82) { //R
+            restartGame();
+        } else if (e && e.keyCode == 37) { // left
+            if (direction != 39) {
+                direction = 37;
+                gameLoop();
+            }
+        } else if (e && e.keyCode == 39) { // right
+            if (direction != 37) {
+                direction = 39;
+                gameLoop();
+            }
+        } else if (e && e.keyCode == 38) { // up
+            if (direction != 40) {
+                direction = 38;
+                gameLoop();
+            }
+        } else if (e && e.keyCode == 40) { // down
+            if (direction != 38) {
+                direction = 40;
+                gameLoop();
+            }
+        }
+    };
+
+    function restartGame() {
+        window.location.reload();
+    }
+
+    function createFood() {
+        //todo
+        while (true) {
+            var x = Math.floor(Math.random() * bodyCountX);
+            var y = Math.floor(Math.random() * bodyCountY);
+
+            if (isBody(x, y) == false) {
+                foodPos = new Point(x, y);
+                break;
+            }
+        }
+        drawCircular(foodPos.x, foodPos.y);
+    }
+
+    function getHead() {
+        return bodyArray[0];
+    };
+
+    //增加头部
+    function addHead(x, y) {
+        //检查
+        if (x < 0 || y <= 0 || x >= bodyCountX || y >= bodyCountY) {
+            //撞墙
+            isGameOver = true;
+        } else if (true == isBody(x, y)) {
+            //咬自己
+            isGameOver = true;
+        }
+        //加入身体
+        bodyArray.unshift(new Point(x, y));
+
+        //游戏如果结束了，就不让他吃东西好了。
+        if (x == foodPos.x && y == foodPos.y) {
+            foodPos.x = -1;
+            addLength()
+        }
+    };
+
+    function isBody(x, y) {
+        //查找是否为身体
+        var mark = false;
+        for (var i = bodyArray.length - 1; i >= 0; i--) {
+            if (x == bodyArray[i].x && y == bodyArray[i].y) {
+                mark = true;
+                break;
+            }
+        }
+        return mark
+    }
+
+    function addLength() {
+        if (isGameOver == false) {
+            bodyLength++;
+        }
+    }
+
+    //减去尾部
+    function delTail() {
+        drawSquare(bodyArray[bodyArray.length - 1].x, bodyArray[bodyArray.length - 1].y, true);
+        bodyArray.splice(bodyArray.length - 1, 1);
+    };
+
+    //画线
+    function drawLine(x1, y1, x2, y2) {
+        context.save();
+        context.fillStyle = 'rgba(144, 144, 144, .9)';
+        context.strokeStyle = 'rgba(0, 0, 0, 1.0)';
+        context.lineWidth = 1;
+        context.translate(drawOri.x, drawOri.y);
+        context.moveTo(x1, y1);
+        context.lineTo(x2, y2);
+        context.fill();
+        context.stroke();
+        context.restore();
+    };
+
+    //画方块
+    function drawSquare(x, y, clear = false) {
+        context.save();
+        if (clear == true) {
+            context.fillStyle = 'rgba(255, 255, 255, 1.0)';
+            context.strokeStyle = 'rgba(255, 255, 255, 0.0)';
+        } else {
+            context.fillStyle = 'rgba(0, 0, 0, 1.0)';
+            context.strokeStyle = 'rgba(0, 0, 0, 0.0)';
+        }
+        context.lineWidth = 0;
+        context.translate(drawOri.x, drawOri.y);
+        context.moveTo(x * bodyStepX, y * bodyStepY);
+        context.beginPath();
+        context.lineTo((x + 1) * bodyStepX - 2, y * bodyStepY + 2);
+        context.lineTo((x + 1) * bodyStepX - 2, (y + 1) * bodyStepY - 2);
+        context.lineTo(x * bodyStepX + 2, (y + 1) * bodyStepY - 2);
+        context.lineTo(x * bodyStepX + 2, y * bodyStepY + 2);
+        context.closePath();
+        context.stroke();
+        context.fill();
+        context.restore();
+    };
+
+    //画圆
+    function drawCircular(x, y) {
+        var rValue = bodyStepY / 2.0;
+        context.save();
+        context.fillStyle = 'rgba(0, 0, 0, 1.0)';
+        context.strokeStyle = 'rgba(0, 0, 0, 0.0)';
+        context.lineWidth = 1;
+        context.translate(drawOri.x, drawOri.y);
+        context.moveTo(x * bodyStepX, y * bodyStepY);
+        context.beginPath();
+        context.arc(x * bodyStepX + rValue, y * bodyStepY + rValue, rValue - 2, 0, 360, false);
+        context.fillStyle = "black";
+        context.fill();
+        context.closePath();
+        context.stroke();
+        context.fill();
+        context.restore();
+    };
+
+    //写字
+    function drawText(result) {
+        if (false == isTextOut) {
+            isTextOut = true;
+
+            context.save();
+            context.lineWidth = 1;
+            context.translate(drawOri.x, drawOri.y);
+            context.font = "36px Georgia";
+            if (result == true) {
+                context.fillText("好(Good)屌(Dick)!", 50, 50 + 36);
+            } else {
+                context.fillText("游戏结束了，", 50, 50 + 36);
+                context.fillText("喵!", 50, 50 + 36 * 2);
+                context.fillText("虽然你还能自己动，", 50, 50 + 36 * 4);
+                context.fillText("不过反正也长不大...", 50, 50 + 36 * 5);
+                context.fillText("(按 R 重新开始)", 50, 50 + 36 * 7);
+            }
+            context.restore();
+        }
+    };
+
+    //point 类
+    function Point(x, y) {　　　　
+        this.x = x;
+        this.y = y;　　
+    };
+    </script>
+</body>
+
+</html>
