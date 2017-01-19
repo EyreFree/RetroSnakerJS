@@ -226,7 +226,7 @@
     //增加头部
     function addHead(x, y) {
         //检查
-        if (x < 0 || y <= 0 || x >= bodyCountX || y >= bodyCountY) {
+        if (x < 0 || y < 0 || x >= bodyCountX || y >= bodyCountY) {
             //撞墙
             isGameOver = true;
         } else if (true == isBody(x, y)) {
