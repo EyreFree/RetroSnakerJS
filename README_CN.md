@@ -1,18 +1,18 @@
 # RetroSnakerJS
 
 
-RetroSnakerJS
+贪吃蛇 JS 版
 
 
-## Basic
+## 基本操作
 
-Direction key: ⬆️ ⬇️ ⬅️ ➡️ control the direction of the snaker;
+方向键： ⬆️ ⬇️ ⬅️ ➡️ 控制移动；
 
-Space key: Pause/Continue;
+空格键： 暂停／继续；
 
-R: Reset game.
+R：重置游戏。
 
 
-## Preview
+## 在线预览
 
 [https://8bit-game-studio.github.io/RetroSnakerJS/RetroSnakerJS.html](https://8bit-game-studio.github.io/RetroSnakerJS/RetroSnakerJS.html)
